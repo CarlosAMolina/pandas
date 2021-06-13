@@ -12,10 +12,10 @@ df_old = pd.DataFrame(
             4,
         ],
         "date": [
-            datetime.datetime(1901, 1, 1),
-            datetime.datetime(2100, 1, 1),
-            datetime.datetime(1903, 1, 1),
-            datetime.datetime(2100, 1, 1),
+            datetime.datetime(2001, 1, 1),
+            datetime.datetime(2002, 1, 1),
+            datetime.datetime(2003, 1, 1),
+            datetime.datetime(2004, 1, 1),
         ],
     }
 )
@@ -28,7 +28,7 @@ df_new = pd.DataFrame(
             2,
         ],
         "date": [
-            datetime.datetime(1900, 1, 1),
+            datetime.datetime(2101, 1, 1),
             datetime.datetime(2104, 1, 1),
             datetime.datetime(2102, 1, 1),
         ],
@@ -44,36 +44,38 @@ df_expected_result = pd.DataFrame(
             4,
         ],
         "date": [
-            datetime.datetime(1901, 1, 1),
-            datetime.datetime(2102, 1, 1),
-            datetime.datetime(1903, 1, 1),
+            datetime.datetime(2001, 1, 1),
+            datetime.datetime(2002, 1, 1),
+            pd.NaT,
             datetime.datetime(2104, 1, 1),
         ],
     }
 )
 
 
-def _update_column_with_max_value_by_primary_key(
+def _update_column_with_other_df_based_on_expression(
     df_to_update: pd.DataFrame,
     df_with_new_values: pd.DataFrame,
     column_to_update: str,
-    column_primary_key: str,
+    column_index: str,
+    expression: pd.Series,
 ) -> pd.DataFrame:
     result_df = copy.deepcopy(df_to_update)
     column_to_update_new = f"{column_to_update}_new"
     result_df = result_df.merge(
         df_with_new_values.rename(columns={column_to_update: column_to_update_new}),
-        on=column_primary_key,
+        on=column_index,
         how="left",
     )
-    result_df[[column_to_update]] = result_df[
-        [column_to_update, column_to_update_new]
-    ].max(axis=1)
+    result_df.loc[expression, column_to_update] = result_df[expression][
+        column_to_update_new
+    ]
     return result_df.drop(columns=column_to_update_new)
 
 
 if __name__ == "__main__":
-    df_result = _update_column_with_max_value_by_primary_key(
-        df_old, df_new, "date", "id"
+    expression = df_old["date"] > datetime.datetime(2002, 1, 1)
+    df_result = _update_column_with_other_df_based_on_expression(
+        df_old, df_new, "date", "id", expression
     )
     assert df_result.equals(df_expected_result)

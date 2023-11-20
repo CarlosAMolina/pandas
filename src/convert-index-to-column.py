@@ -13,14 +13,18 @@ index_tuples = [
 index = pd.MultiIndex.from_tuples(index_tuples, names=["concept", "month"])
 original_df = Df([1.1, 2.2, 3.3, 4.4, 5.5], columns=["cost"], index=index)
 
+index = pd.Index(["light", "water"])
+index = index.set_names("concept")
 expected_result_df = pd.DataFrame(
     data={
-        "january": [1.1, 3.3],
+        "january": [1.1, 4.4],
         "february": [2.2, 5.5],
         "march": [3.3, np.nan],
     },
-    index=["light", "water"],
+    index=index,
 )
+expected_result_df.columns = expected_result_df.columns.set_names("month")
+expected_result_df.to_csv("foo.csv")
 
 
 class ManualDfConverter:
@@ -28,6 +32,12 @@ class ManualDfConverter:
         self._df = df
 
     def get_df(self) -> Df:
+        result = self._df.copy()
+        result = result.unstack(level=-1)
+        result.columns = result.columns.droplevel(level=0)
+        column_names = ["january", "february", "march"]
+        result = result.reindex(columns=column_names)
+        return result
         index = self._get_index()
         data = self._get_data()
         result = pd.DataFrame(
@@ -71,4 +81,3 @@ if __name__ == "__main__":
     print("Result:")
     print(result)
     pd.testing.assert_frame_equal(expected_result_df, result)
-

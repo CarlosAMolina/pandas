@@ -1,20 +1,23 @@
 from pandas import DataFrame as Df
+import numpy as np
 import pandas as pd
 
 # https://pandas.pydata.org/pandas-docs/stable/user_guide/advanced.html#creating-a-multiindex-hierarchical-index-object
 index_tuples = [
     ("light", "january"),
     ("light", "february"),
+    ("light", "march"),
     ("water", "january"),
     ("water", "february"),
 ]
 index = pd.MultiIndex.from_tuples(index_tuples, names=["concept", "month"])
-original_df = Df([1.1, 2.2, 3.3, 4.4], columns=["cost"], index=index)
+original_df = Df([1.1, 2.2, 3.3, 4.4, 5.5], columns=["cost"], index=index)
 
 expected_result_df = pd.DataFrame(
     data={
         "january": [1.1, 3.3],
-        "february": [2.2, 4.4],
+        "february": [2.2, 5.5],
+        "march": [3.3, np.nan],
     },
     index=["light", "water"],
 )
@@ -42,6 +45,7 @@ class ManualDfConverter:
         return index
 
     def _get_data(self) -> dict:
+        # https://stackoverflow.com/questions/44823418/multi-index-pandas-dataframe-to-a-dictionary/44823657#44823657
         index_parent_name = self._df.index.names[0]
         df_without_parent_index = self._df.reset_index(
             level=[index_parent_name], drop=True
@@ -64,4 +68,7 @@ if __name__ == "__main__":
     print("\nExpected:")
     print(expected_result_df)
     result = ManualDfConverter(original_df).get_df()
+    print("Result:")
+    print(result)
     pd.testing.assert_frame_equal(expected_result_df, result)
+

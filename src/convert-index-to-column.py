@@ -2,31 +2,43 @@ from pandas import DataFrame as Df
 import numpy as np
 import pandas as pd
 
-# https://pandas.pydata.org/pandas-docs/stable/user_guide/advanced.html#creating-a-multiindex-hierarchical-index-object
-index_tuples = [
-    ("light", "january"),
-    ("light", "february"),
-    ("light", "march"),
-    ("water", "january"),
-    ("water", "february"),
-]
-index = pd.MultiIndex.from_tuples(index_tuples, names=["concept", "month"])
-original_df = Df([1.1, 2.2, 3.3, 4.4, 5.5], columns=["cost"], index=index)
 
-index = pd.Index(["light", "water"])
-index = index.set_names("concept")
-expected_result_df = pd.DataFrame(
-    data={
-        "january": [1.1, 4.4],
-        "february": [2.2, 5.5],
-        "march": [3.3, np.nan],
-    },
-    index=index,
-)
-expected_result_df.columns = expected_result_df.columns.set_names("month")
+def get_original_df() -> Df:
+    # https://pandas.pydata.org/pandas-docs/stable/user_guide/advanced.html#creating-a-multiindex-hierarchical-index-object
+    index_tuples = [
+        ("light", "january"),
+        ("light", "february"),
+        ("light", "march"),
+        ("water", "january"),
+        ("water", "february"),
+    ]
+    index = pd.MultiIndex.from_tuples(index_tuples, names=["concept", "month"])
+    original_df = Df([1.1, 2.2, 3.3, 4.4, 5.5], columns=["cost"], index=index)
+    return original_df
 
 
-class ManualDfConverter:
+original_df = get_original_df()
+
+
+def get_expected_result() -> Df:
+    index = pd.Index(["light", "water"])
+    index = index.set_names("concept")
+    expected_result_df = pd.DataFrame(
+        data={
+            "january": [1.1, 4.4],
+            "february": [2.2, 5.5],
+            "march": [3.3, np.nan],
+        },
+        index=index,
+    )
+    expected_result_df.columns = expected_result_df.columns.set_names("month")
+    return expected_result_df
+
+
+expected_result_df = get_expected_result()
+
+
+class DfConverter:
     def __init__(self, df: Df):
         self._df = df
 
@@ -44,7 +56,7 @@ if __name__ == "__main__":
     print(original_df)
     print("\nExpected:")
     print(expected_result_df)
-    result = ManualDfConverter(original_df).get_df()
+    result = DfConverter(original_df).get_df()
     print("Result:")
     print(result)
     pd.testing.assert_frame_equal(expected_result_df, result)

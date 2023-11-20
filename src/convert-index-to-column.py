@@ -50,7 +50,7 @@ class DfConverter:
         return result
 
     def _get_df_set_month_indexes_as_columns(self, df: Df) -> Df:
-        return df.unstack(level=-1)
+        return df.unstack(level="month")
 
     def _get_df_drop_columns_multi_index_set_only_months(self, df: Df) -> Df:
         result = df.copy()

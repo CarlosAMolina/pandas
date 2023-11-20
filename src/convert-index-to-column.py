@@ -44,11 +44,22 @@ class DfConverter:
 
     def get_df(self) -> Df:
         result = self._df.copy()
-        result = result.unstack(level=-1)
-        result.columns = result.columns.droplevel(level=0)
-        column_names = ["january", "february", "march"]
-        result = result.reindex(columns=column_names)
+        result = self._get_df_set_month_indexes_as_columns(result)
+        result = self._get_df_drop_columns_multi_index_set_only_months(result)
+        result = self._get_df_sort_columns(result)
         return result
+
+    def _get_df_set_month_indexes_as_columns(self, df: Df) -> Df:
+        return df.unstack(level=-1)
+
+    def _get_df_drop_columns_multi_index_set_only_months(self, df: Df) -> Df:
+        result = df.copy()
+        result.columns = result.columns.droplevel(level=0)
+        return result
+
+    def _get_df_sort_columns(self, df: Df) -> Df:
+        column_names = ["january", "february", "march"]
+        return df.reindex(columns=column_names)
 
 
 if __name__ == "__main__":

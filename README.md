@@ -1,2 +1,3 @@
-# python-pandas
-Project to learn Pandas.
+# pandas
+
+Project to learn [Pandas](https://pandas.pydata.org/).
